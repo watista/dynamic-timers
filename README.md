@@ -56,18 +56,3 @@ cp /var/www/dynamic-timers/assets/dynamic-timers.conf /etc/nginx/sites-available
 sudo ln -s /etc/nginx/sites-available/dynamic-timers /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
 ```
-
-Set up SSL if required.
-
-
-4. copy service file / enable systemd etc
-    - cp /var/www/dynamic-timers/assets/dynamic-timers.service /etc/systemd/system/dynamic-timers.service
-    - sudo systemctl daemon-reload
-    - sudo systemctl start dynamic-timers
-    - sudo systemctl enable dynamic-timers
-5. add nginx file / setup nginx
-    - cp /var/www/dynamic-timers/assets/dynamic-timers.conf /etc/nginx/sites-available/dynamic-timers.conf
-    - sudo ln -s /etc/nginx/sites-available/dynamic-timers /etc/nginx/sites-enabled/
-    - sudo nginx -t
-    - sudo systemctl restart nginx
-6. setup ssl
