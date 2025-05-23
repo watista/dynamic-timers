@@ -1,3 +1,11 @@
+# Custom
+.DS_store
+*/log/*
+*.sock
+*.db-shm
+*.db-wal
+*.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

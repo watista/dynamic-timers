@@ -1,0 +1,16 @@
+[Unit]
+Description=Uvicorn instance to serve Dynamic Timers (ASGI)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/dynamic-timers
+Environment="DJANGO_SETTINGS_MODULE=timers_project.settings"
+ExecStart=/var/www/dynamic-timers/venv/bin/uvicorn \
+    timers_project.asgi:application \
+    --uds /var/www/dynamic-timers/uvicorn.sock \
+    --workers 4
+
+[Install]
+WantedBy=multi-user.target
