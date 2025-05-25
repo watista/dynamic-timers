@@ -27,9 +27,9 @@ deactivate
 ## Setup Django
 Run the following commands to initialize Django.
 ```
-python manage.py makemigrations
-python manage.py migrate
-python manage.py collectstatic
+/var/www/dynamic-timers/env/bin/python3 manage.py makemigrations
+/var/www/dynamic-timers/env/bin/python3 manage.py migrate
+/var/www/dynamic-timers/env/bin/python3 manage.py collectstatic
 ```
 
 ## Run locally
@@ -53,6 +53,6 @@ sudo systemctl enable dynamic-timers
 Copy the Nginx config and start the proxy.
 ```
 cp /var/www/dynamic-timers/assets/dynamic-timers.conf /etc/nginx/sites-available/dynamic-timers.conf
-sudo ln -s /etc/nginx/sites-available/dynamic-timers /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/dynamic-timers.conf /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
 ```
