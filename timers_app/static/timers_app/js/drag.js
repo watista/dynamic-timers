@@ -1,13 +1,29 @@
 function updateTimers() {
     const now = Date.now() / 1000;
+    let totalSeconds = 0;
+
     document.querySelectorAll("[data-timer]").forEach(el => {
         const start = parseFloat(el.dataset.start);
         const elapsed = parseFloat(el.dataset.elapsed);
+
         if (!isNaN(start) && !isNaN(elapsed)) {
+            // ⏱ Running timer
             const minutes = ((elapsed + (now - start)) / 60).toFixed(1);
             el.textContent = minutes.replace(',', '.') + " min";
+            totalSeconds += elapsed + (now - start);
+        } else if (!isNaN(elapsed)) {
+            // ⏸ Paused timer
+            const minutes = (elapsed / 60).toFixed(1);
+            el.textContent = minutes + " min";
+            totalSeconds += elapsed;
         }
     });
+
+    // Update total
+    document.getElementById("total-minutes").textContent = (totalSeconds / 60).toFixed(0);
+    const totalHoursInt = (totalSeconds / 3600).toFixed(0);
+    const totalMinutesInt = ((totalSeconds % 3600) / 60).toFixed(0);
+    document.getElementById("total-hours").textContent = `${totalHoursInt}h${totalMinutesInt}m`;
 }
 
 setInterval(updateTimers, 1000);
@@ -58,6 +74,7 @@ function drop(ev) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Assign draggable behavior (already fine)
     document.querySelectorAll(".drag-handle").forEach(handle => {
         handle.setAttribute("draggable", true);
 
@@ -70,6 +87,21 @@ document.addEventListener("DOMContentLoaded", () => {
         handle.addEventListener("dragend", e => {
             const card = e.target.closest(".card");
             card.classList.remove("dragging");
+        });
+    });
+
+    // Ensure the visible input value is transferred before toggle
+    document.querySelectorAll("button[name='action'][value='toggle']").forEach(button => {
+        button.addEventListener("click", (e) => {
+            const form = button.closest("form");
+
+            // If there's a visible elapsed input (only for paused timers), ensure it's enabled
+            const elapsedInput = form.querySelector("input[name='elapsed']");
+            if (elapsedInput) {
+                // Manually trigger form submission
+                // Let the input submit with its current value
+                form.submit();
+            }
         });
     });
 });

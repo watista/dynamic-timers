@@ -16,27 +16,42 @@
     <div id="timer-container" ondrop="drop(event)">
     {% for timer in timers %}
         <div class="card mb-2 p-3 {% if timer.running %}bg-warning-subtle{% endif %}" ondragstart="drag(event)" ondragend="dragEnd(event)" ondragover="allowDrop(event)" ondrop="drop(event)" id="timer-{{ forloop.counter0 }}">
-            <form method="POST" class="d-flex align-items-center gap-2">{% csrf_token %}
-                <span class="drag-handle" title="Drag to reorder">☰</span>
-                <button type="submit" name="action" value="update" class="btn btn-info">💾</button>
-                <textarea name="name" class="form-control me-2" rows="1" style="width: 400px;">{{ timer.name }}</textarea>
-                <span class="me-2" style="width: 70px; font-weight: 500" data-timer
+            <form method="POST" class="d-flex align-items-center justify-content-between gap-2">{% csrf_token %}
+                <div class="d-flex align-items-center gap-2">
+                    <span class="drag-handle" title="Drag to reorder">☰</span>
+                    <button type="submit" name="action" value="update" class="btn btn-info" {% if timer.locked %}disabled{% endif %}>💾</button>
+                    <textarea name="name" class="form-control me-2" rows="1" style="width: 400px;" {% if timer.locked %}disabled{% endif %}>{{ timer.name }}</textarea>
                     {% if timer.running %}
-                        data-start="{{ timer.start_time }}"
-                        data-elapsed="{{ timer.elapsed }}"
-                    {% endif %}>
-                    {{ timer.elapsed_display|format_minutes }} min
-                </span>
-                {% if timer.running %}
-                <button type="submit" name="action" value="toggle" class="btn btn-warning me-2" style="width: 100px; font-weight: 500;">⏸ Pause</button>
-                {% else %}
-                <button type="submit" name="action" value="toggle" class="btn btn-success me-2" style="width: 100px; font-weight: 500;">▶️ Start</button>
-                {% endif %}
-                <button type="submit" name="action" value="delete" class="btn btn-danger">🗑️</button>
+                    <span class="me-2" style="width: 90px; font-weight: 500; text-align: center;" data-timer
+                          data-start="{{ timer.start_time }}"
+                          data-elapsed="{{ timer.elapsed }}">
+                        {{ timer.elapsed_display|format_minutes }} min
+                    </span>
+                    {% else %}
+                    <input type="number" name="elapsed" class="form-control me-2 elapsed-input" {% if timer.locked %}disabled{% endif %}
+                           step="0.1" min="0" style="width: 90px; font-weight: 500"
+                           value="{% if timer.elapsed_display %}{{ timer.elapsed_display|format_minutes }}{% else %}0.0{% endif %}">
+                    <span data-timer data-elapsed="{{ timer.elapsed }}" style="display: none;"></span>
+                    {% endif %}
+                    {% if timer.running %}
+                    <button type="submit" name="action" value="toggle" class="btn btn-warning me-2" style="width: 100px; font-weight: 500;" {% if timer.locked %}disabled{% endif %}>⏸ Pause</button>
+                    {% else %}
+                    <button type="submit" name="action" value="toggle" class="btn btn-success me-2" style="width: 100px; font-weight: 500;" {% if timer.locked %}disabled{% endif %}>▶️ Start</button>
+                    {% endif %}
+                    <button type="submit" name="action" value="delete" class="btn btn-danger" {% if timer.locked %}disabled{% endif %}>🗑️</button>
+                </div>
+                <button type="submit" name="action" value="lock" class="btn {% if timer.locked %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                    {% if timer.locked %}🔓{% else %}🔒{% endif %}
+                </button>
                 <input type="hidden" name="timer_id" value="{{ forloop.counter0 }}">
             </form>
         </div>
     {% endfor %}
+    <div class="text-end fw-bold mt-3">
+        Total time:
+        <span id="total-minutes">{{ total_minutes|floatformat:0 }}</span> min /
+        <span id="total-hours">{{ total_hours_formatted }}</span>
+    </div>
     </div>
 
     <footer class="fixed-bottom text-center py-2 bg-light border-top shadow-sm">

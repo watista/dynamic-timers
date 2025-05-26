@@ -8,6 +8,7 @@ A Python Django web based program to run one or multiple timers. Give your timer
 Create a `.env` file in the project root and add the following variables.
 |ENV var|Explain|
 |-------|-------|
+|DEBUG|Django env setting|
 |SECRET_KEY|The secret key for Django to use for signing, hashing and signing|
 |ALLOWED_HOSTS|The host names that are allowed for the app|
 |LOG_LEVEL|The log level, allowed values are: DEBUG, INFO, WARNING, ERROR, or CRITICAL|
