@@ -21,9 +21,9 @@ function updateTimers() {
 
     // Update total
     document.getElementById("total-minutes").textContent = (totalSeconds / 60).toFixed(0);
-    const totalHoursInt = (totalSeconds / 3600).toFixed(0);
-    const totalMinutesInt = ((totalSeconds % 3600) / 60).toFixed(0);
-    document.getElementById("total-hours").textContent = `${totalHoursInt}h${totalMinutesInt}m`;
+    const totalHoursInt = Math.floor(totalSeconds / 3600);
+    const totalMinutesInt = Math.floor((totalSeconds % 3600) / 60);
+    document.getElementById("total-hours").textContent = `${totalHoursInt}h${String(totalMinutesInt).padStart(2, '0')}m`;
 }
 
 setInterval(updateTimers, 1000);
