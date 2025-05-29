@@ -40,6 +40,10 @@ def index(request):
             if action == "toggle":
                 now_ts = time.time()
 
+                name = request.POST.get("name", "").strip()
+                if name:
+                    timers[timer_id]["name"] = name
+
                 if not timers[timer_id]["running"]:
                     elapsed = request.POST.get("elapsed")
                     if elapsed:
@@ -113,7 +117,7 @@ def index(request):
     minutes = round(total_minutes % 60)
     total_hours_formatted = f"{hours}h{minutes:02d}m"
 
-    return render(request, "timers_app/index.html", {
+    return render(request, "index.html", {
         "timers": timers,
         "enumerate": enumerate,
         "total_minutes": total_minutes,

@@ -4,22 +4,27 @@ function updateTimers() {
 
     document.querySelectorAll("[data-timer]").forEach(el => {
         const start = parseFloat(el.dataset.start);
-        const elapsed = parseFloat(el.dataset.elapsed);
+        const elapsedAttr = parseFloat(el.dataset.elapsed);
+        const id = el.dataset.id;
+        let elapsed = 0;
 
-        if (!isNaN(start) && !isNaN(elapsed)) {
-            // ⏱ Running timer
-            const minutes = ((elapsed + (now - start)) / 60).toFixed(1);
-            el.textContent = minutes.replace(',', '.') + " min";
-            totalSeconds += elapsed + (now - start);
-        } else if (!isNaN(elapsed)) {
-            // ⏸ Paused timer
+        if (!isNaN(start) && !isNaN(elapsedAttr)) {
+            elapsed = elapsedAttr + (now - start);
             const minutes = (elapsed / 60).toFixed(1);
-            el.textContent = minutes + " min";
-            totalSeconds += elapsed;
+            el.textContent = minutes.replace(',', '.') + " min";
+        } else {
+            const input = document.querySelector(`.elapsed-input[data-id="${id}"]`);
+            if (input) {
+                const inputMinutes = parseFloat(input.value);
+                if (!isNaN(inputMinutes)) {
+                    elapsed = inputMinutes * 60;
+                    el.textContent = inputMinutes.toFixed(1).replace(',', '.') + " min";
+                }
+            }
         }
+        totalSeconds += elapsed;
     });
 
-    // Update total
     document.getElementById("total-minutes").textContent = (totalSeconds / 60).toFixed(0);
     const totalHoursInt = Math.floor(totalSeconds / 3600);
     const totalMinutesInt = Math.floor((totalSeconds % 3600) / 60);
@@ -74,7 +79,6 @@ function drop(ev) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Assign draggable behavior (already fine)
     document.querySelectorAll(".drag-handle").forEach(handle => {
         handle.setAttribute("draggable", true);
 
@@ -90,18 +94,56 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Ensure the visible input value is transferred before toggle
     document.querySelectorAll("button[name='action'][value='toggle']").forEach(button => {
         button.addEventListener("click", (e) => {
             const form = button.closest("form");
 
-            // If there's a visible elapsed input (only for paused timers), ensure it's enabled
             const elapsedInput = form.querySelector("input[name='elapsed']");
             if (elapsedInput) {
-                // Manually trigger form submission
-                // Let the input submit with its current value
                 form.submit();
             }
         });
+    });
+});
+
+document.querySelectorAll(".name-input, .elapsed-input").forEach(field => {
+    field.addEventListener("blur", async (e) => {
+        const el = e.target;
+        const id = el.dataset.id;
+        const name = document.querySelector(`.name-input[data-id="${id}"]`).value;
+        const elapsed = document.querySelector(`.elapsed-input[data-id="${id}"]`).value;
+
+        const csrf = document.querySelector("input[name=csrfmiddlewaretoken]").value;
+
+        await fetch("/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrf,
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams({
+                action: "update",
+                timer_id: id,
+                name: name,
+                elapsed: elapsed
+            })
+        });
+        updateTimers();
+    });
+});
+
+document.querySelectorAll(".name-input").forEach(field => {
+    const id = field.dataset.id;
+    const savedWidth = localStorage.getItem(`name-width-${id}`);
+    if (savedWidth) {
+        field.style.width = savedWidth;
+    }
+
+    field.addEventListener("mouseup", () => {
+        localStorage.setItem(`name-width-${id}`, field.style.width);
+    });
+
+    field.addEventListener("blur", () => {
+        localStorage.setItem(`name-width-${id}`, field.style.width);
     });
 });

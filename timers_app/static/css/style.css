@@ -1,0 +1,80 @@
+.name-input {
+    width: 20rem;
+    resize: horizontal;
+    overflow: auto;
+}
+
+.running-timer, .elapsed-input {
+    font-weight: 500;
+    text-align: center;
+    width: 6rem;
+}
+
+.pause, .play {
+    width: 7rem;
+    font-weight: 500;
+}
+
+.drag-over {
+    border: 2px dashed #0d6efd;
+    background-color: #e7f1ff;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+.drag-handle {
+    cursor: grab;
+    margin-right: 15px;
+    font-size: 20px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.btn-danger.mobile {
+    display: none;
+}
+
+@media (max-width: 992px) {
+    .name-input {
+        width: 16rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .drag-handle,
+    .btn-danger.desktop {
+        display: none;
+    }
+
+    .name-input {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    .elapsed-input,
+    .running-timer,
+    .play,
+    .pause {
+        width: 48%;
+        margin: 0 !important;
+    }
+
+    .card form {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .card .d-flex {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: space-between;
+    }
+
+    .btn-danger.mobile {
+        display: inline-block;
+    }
+}
