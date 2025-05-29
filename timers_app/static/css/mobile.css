@@ -1,0 +1,39 @@
+@media (max-width: 992px) {
+    .name-input {
+        width: 16rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .drag-handle,
+    .btn-danger.desktop {
+        display: none;
+    }
+
+    .name-input {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    .elapsed-input,
+    .running-timer,
+    .play,
+    .pause {
+        width: 48%;
+        margin: 0 !important;
+    }
+
+    .card form {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .card .d-flex {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: space-between;
+    }
+
+    .btn-danger.mobile {
+        display: inline-block;
+    }
+}
