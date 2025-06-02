@@ -1,0 +1,49 @@
+.tab-name-input {
+    width: 100px;
+    padding: 2px 5px;
+}
+
+.tab-name-container {
+    border: none;
+    background: none;
+}
+
+.nav-tabs .nav-item {
+    border-radius: 5px 5px 0 0;
+    border: 1px solid #ddd;
+    margin-right: 2px;
+    text-align: center;
+    color: #212529;
+    font-weight: 500;
+    cursor: pointer;
+    margin-bottom: -1px;
+    background: #fff;
+    margin-top: 2px;
+}
+
+.nav-tabs .nav-item.active {
+    border: 2px solid #bbb;
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-link {
+    color: #212529;
+    padding: 6px 12px;
+    background: transparent;
+    border-color: transparent !important;
+    height: 100%;
+    flex-wrap: nowrap;
+    max-width: none;
+    width: fit-content;
+}
+
+.tab-name-text {
+    white-space: nowrap;
+}
+
+.edit-tab-name {
+    text-align: right;
+    white-space: nowrap;
+    margin-left: 6px;
+    cursor: pointer;
+}
