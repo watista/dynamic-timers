@@ -44,3 +44,7 @@ input[type=number]::-webkit-outer-spin-button {
     color: #424242;
 }
 
+#inactivity-time {
+    width: 46px;
+    text-align: center;
+}

@@ -1,6 +1,7 @@
 function updateTimers() {
     const now = Date.now() / 1000;
     let totalSeconds = 0;
+    let anyTimerRunning = false;
     const activeTab = document.querySelector(".nav-link.active")?.dataset.tab;
 
     document.querySelectorAll(`[data-timer][data-tab="${activeTab}"]`).forEach(el => {
@@ -10,6 +11,7 @@ function updateTimers() {
         let elapsed = 0;
 
         if (!isNaN(start) && !isNaN(elapsedAttr)) {
+            anyTimerRunning = true;
             elapsed = elapsedAttr + (now - start);
             const minutes = (elapsed / 60).toFixed(1);
             el.textContent = minutes.replace(',', '.') + " min";
@@ -31,6 +33,7 @@ function updateTimers() {
     const totalHoursInt = Math.floor(totalSeconds / 3600);
     const totalMinutesInt = Math.floor((totalSeconds % 3600) / 60);
     document.getElementById("total-hours").textContent = `${totalHoursInt}h${String(totalMinutesInt).padStart(2, '0')}m`;
+    checkInactivity(anyTimerRunning);
 }
 
 setInterval(updateTimers, 1000);
@@ -77,6 +80,36 @@ function drop(ev) {
             },
             body: JSON.stringify({ action: "reorder", order: order }),
         }).then(() => window.location.reload());
+    }
+}
+
+let lastActiveTimestamp = Date.now();
+let lastNotified = 0;
+
+function checkInactivity(anyRunning) {
+    const now = Date.now();
+    const input = document.getElementById("inactivity-time");
+    const customDelay = parseInt(input?.value || "15", 10);
+    const delayMinutes = Math.max(customDelay, 1);
+
+    if (anyRunning) {
+        lastActiveTimestamp = now;
+    } else {
+        const diffMinutes = (now - lastActiveTimestamp) / 1000 / 60;
+
+        if (diffMinutes >= delayMinutes && (now - lastNotified) > 1000 * 60 * delayMinutes) {
+            sendInactivityNotification(delayMinutes);
+            lastNotified = now;
+        }
+    }
+}
+
+function sendInactivityNotification(delay) {
+    if (Notification.permission === "granted") {
+        new Notification("⏱ Reminder", {
+            body: `No timers have been running for ${delay} minutes.`,
+            icon: "/static/img/favicon.png"
+        });
     }
 }
 
@@ -230,6 +263,22 @@ document.addEventListener("DOMContentLoaded", () => {
         field.addEventListener("blur", () => {
             localStorage.setItem(`name-width-${id}`, field.style.width);
         });
+    });
+
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+    }
+
+    const inactivityInput = document.getElementById("inactivity-time");
+
+    const savedDelay = localStorage.getItem("inactivityDelay");
+    inactivityInput.value = savedDelay ? parseInt(savedDelay, 10) : 15;
+
+    inactivityInput.addEventListener("input", () => {
+        const value = parseInt(inactivityInput.value, 10);
+        if (!isNaN(value) && value >= 1) {
+            localStorage.setItem("inactivityDelay", value);
+        }
     });
 
     updateTimers(); // initial

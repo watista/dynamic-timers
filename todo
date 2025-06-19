@@ -1,8 +1,7 @@
 - create & assign tags/categories with (color) labers
 - make session persistant and restore through link/id
 - export/import function
-- browser notification when x time on timer
 - seperate days for timer set
 - create template set
 - auto highlight new tab name
--
+- drag/drop tabs
