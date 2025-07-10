@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.utils.timezone import now
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import time, json
 
 def index(request):
@@ -30,6 +31,9 @@ def index(request):
             return JsonResponse({"status": "ok"})
 
     timers = tabs[active_tab]["timers"]
+
+    if "timer_sets" not in request.session:
+        request.session["timer_sets"] = []
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -66,6 +70,22 @@ def index(request):
             })
             request.session["new_timer_added"] = True
             save()
+
+        elif action == "apply_timer_set":
+            set_name = request.POST.get("set_name")
+            current_tab = request.session["active_tab"]
+            sets = request.session["timer_sets"]
+
+            selected_set = next((s for s in sets if s["name"] == set_name), None)
+            if selected_set:
+                timers.extend({
+                    "name": t["name"],
+                    "elapsed": 0.0,
+                    "running": False,
+                    "start_time": None,
+                    "locked": False
+                } for t in selected_set["timers"])
+                save()
 
         elif 0 <= timer_id < len(timers):
             timer = timers[timer_id]
@@ -147,4 +167,41 @@ def index(request):
         "total_hours_formatted": total_hours_formatted,
         "current_tab_name": current_tab_name,
         "new_timer_added": new_timer_added,
+        "timer_sets": request.session["timer_sets"],
     })
+
+
+def manage_timer_sets(request):
+    if "timer_sets" not in request.session:
+        request.session["timer_sets"] = []
+
+    sets = request.session["timer_sets"]
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "add":
+            name = request.POST.get("set_name", "").strip()
+            timers = request.POST.getlist("timer_names")
+            timers = [{"name": t.strip()} for t in timers if t.strip()]
+            if name and timers:
+                sets.append({"name": name, "timers": timers})
+                request.session.modified = True
+
+        elif action == "update":
+            index = int(request.POST.get("set_index"))
+            name = request.POST.get("set_name", "").strip()
+            timers = request.POST.getlist("timer_names")
+            timers = [{"name": t.strip()} for t in timers if t.strip()]
+            if 0 <= index < len(sets) and name:
+                sets[index] = {"name": name, "timers": timers}
+                request.session.modified = True
+
+        elif action == "delete":
+            index = int(request.POST.get("set_index"))
+            if 0 <= index < len(sets):
+                del sets[index]
+                request.session.modified = True
+
+        return redirect("manage_timer_sets")
+
+    return render(request, "manage_timer_sets.html", {"timer_sets": sets})

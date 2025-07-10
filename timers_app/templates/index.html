@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
     <link rel="stylesheet" href="{% static 'css/darkmode.css' %}">
     <link rel="stylesheet" href="{% static 'css/tabs.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         if (localStorage.getItem("darkMode") === "true") {
             document.documentElement.classList.add("dark-mode");
@@ -36,11 +37,20 @@
         </div>
     </div>
 
-    <!-- Alert interval input -->
+    <!-- Inactivity alert interval input -->
     <div class="mb-2 d-flex align-items-center fw-semibold gap-2">
         <label for="inactivity-time">Inactivity notification interval:</label>
         <div class="d-flex align-items-center gap-2">
             <input type="number" id="inactivity-time" class="form-control" min="1" step="1">
+            <span>minutes</span>
+        </div>
+    </div>
+
+    <!-- Activity alert interval input -->
+    <div class="mb-2 d-flex align-items-center fw-semibold gap-2">
+        <label for="activity-time">Activity notification interval:</label>
+        <div class="d-flex align-items-center gap-2">
+            <input type="number" id="activity-time" class="form-control" min="1" step="1">
             <span>minutes</span>
         </div>
     </div>
@@ -84,6 +94,27 @@
         <form method="POST">{% csrf_token %}
             <button name="action" value="add" class="btn btn-primary fw-bold">➕ Add Timer</button>
         </form>
+        {% if timer_sets %}
+        <div class="btn-group">
+          <button type="button" class="btn btn-outline-secondary dropdown-toggle fw-bold" data-bs-toggle="dropdown" aria-expanded="false">
+            📋 Apply Timer Set
+          </button>
+          <ul class="dropdown-menu">
+            {% for set in timer_sets %}
+              <li>
+                <form method="POST" class="px-3">{% csrf_token %}
+                  <input type="hidden" name="action" value="apply_timer_set">
+                  <input type="hidden" name="set_name" value="{{ set.name }}">
+                  <button type="submit" class="dropdown-item">{{ set.name }}</button>
+                </form>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        <a href="{% url 'manage_timer_sets' %}" class="btn btn-outline-success fw-bold">
+          🛠 Manage Timer Sets
+        </a>
         {% if tabs|length > 1 %}
         <form method="POST" onsubmit="return confirm('Are you sure you want to delete the tab: {{ current_tab_name }}?')">
             {% csrf_token %}
@@ -132,6 +163,13 @@
                 <p>Total time: <span id="total-minutes">{{ total_minutes|floatformat:0 }}</span> min / <span id="total-hours">{{ total_hours_formatted }}</span></p>
             </div>
         </div>
+    </div>
+
+    <!-- Export salesforce -->
+    <div class="text-center my-4">
+      <button id="export-salesforce" class="btn btn-outline-primary fw-semibold">
+        🚀 Export time to Salesforce
+      </button>
     </div>
 
     <!-- Footer -->

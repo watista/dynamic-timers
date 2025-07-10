@@ -123,3 +123,26 @@ body.dark-mode .nav-tabs .nav-item {
     border: 1px solid #212529;
     background: #212529;
 }
+
+body.dark-mode .btn-check:checked+.btn,
+body.dark-mode .btn.active,
+body.dark-mode .btn.show {
+    color: #f1f1f1;
+    background-color: #1a1a1a;
+    border-color: #222;
+}
+
+body.dark-mode .dropdown-menu {
+    background-color: #2b2b2b;
+    border-color: #444;
+}
+
+body.dark-mode .dropdown-menu .dropdown-item {
+    color: #f0f0f0;
+}
+
+body.dark-mode .dropdown-menu .dropdown-item:hover,
+body.dark-mode .dropdown-menu .dropdown-item:focus {
+    background-color: #444;
+    color: #fff;
+}

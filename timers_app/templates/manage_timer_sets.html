@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <title>Dynamic Timers</title>
+    <meta charset="utf-8">
+    <meta name="title" content="Dynamic Timers">
+    <meta name="description" content="Dynamic Timers lets you create, manage, and track multiple named timers with live updates. Perfect for productivity, time tracking, and focus.">
+    <meta name="robots" content="INDEX,FOLLOW">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5.0, user-scalable=yes">
+    <link rel="icon" type="image/x-icon" href="{% static 'img/favicon.png' %}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mobile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/darkmode.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tabs.css' %}">
+    <script>
+        if (localStorage.getItem("darkMode") === "true") {
+            document.documentElement.classList.add("dark-mode");
+        }
+    </script>
+</head>
+<body class="container py-4">
+    <div class="mb-2 d-flex align-items-center justify-content-between gap-2">
+        <h1>Manage Timer Sets</h1>
+        <div class="form-switch float-end">
+            <li class="nav-item align-items-center d-flex">
+                <i class="fas fa-sun"></i>
+                <div class="ms-2 form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="checkbox" />
+                </div>
+                <i class="fas fa-moon"></i>
+            </li>
+        </div>
+    </div>
+
+    <!-- List existing sets -->
+    {% for set in timer_sets %}
+    <form method="POST" class="border p-3 mb-3 rounded">{% csrf_token %}
+        <input type="hidden" name="action" value="update">
+        <input type="hidden" name="set_index" value="{{ forloop.counter0 }}">
+        <div class="mb-2">
+            <label class="form-label fw-bold">Set Name</label>
+            <input type="text" name="set_name" class="form-control" value="{{ set.name }}" required>
+        </div>
+        <div id="timers-{{ forloop.counter0 }}">
+            <label class="form-label fw-bold">Timer Name(s)</label>
+            {% for timer in set.timers %}
+                <input type="text" name="timer_names" class="form-control mb-2" value="{{ timer.name }}" required>
+            {% endfor %}
+        </div>
+        <div class="d-flex gap-2 mb-3">
+            <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="addTimerField('timers-{{ forloop.counter0 }}')">➕ Add Timer</button>
+            <button type="button" class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteLastField('timers-{{ forloop.counter0 }}')">🗑 Delete Last</button>
+        </div>
+        <div class="mt-2">
+            <button type="submit" name="action" value="update" class="btn btn-success btn-sm fw-bold">💾 Save</button>
+            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm ms-2 fw-bold">🗑 Delete</button>
+        </div>
+    </form>
+    {% empty %}
+    <p>No timer sets yet.</p>
+    {% endfor %}
+
+    <hr>
+    <!-- Add new set -->
+    <h4 class="mt-4">➕ Add New Timer Set</h4>
+    <form method="POST" class="border p-3 rounded">{% csrf_token %}
+        <input type="hidden" name="action" value="add">
+        <div class="mb-2">
+            <label class="form-label fw-bold">Set Name</label>
+            <input type="text" name="set_name" class="form-control" required>
+        </div>
+        <div id="new-timer-fields">
+            <label class="form-label fw-bold">Timer Name(s)</label>
+            <input type="text" name="timer_names" class="form-control mb-2" required>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary mb-2 fw-bold" onclick="addTimerField('new-timer-fields')">➕ Add Timer</button><br>
+        <button type="submit" class="btn btn-primary btn-sm fw-bold">💾 Save New Set</button>
+        <a href="{% url 'index' %}" class="btn btn-outline-success btn-sm ms-2 fw-bold">← Back</a>
+    </form>
+
+    <!-- Footer -->
+    <footer class="fixed-bottom text-center py-2 bg-light border-top shadow-sm">
+        <a href="https://github.com/watista/dynamic-timers" target="_blank" class="text-dark text-decoration-none fw-semibold">
+            <img src="{% static 'img/github.png' %}" alt="GitHub" width="20" height="20" class="github-logo">
+            <img src="{% static 'img/github-white.png' %}" alt="GitHub" width="20" height="20" class="github-logo-dark">
+            View on <span class="text-secondary">GitHub</span>
+        </a>
+    </footer>
+
+    <!-- JavaScript -->
+    <div id="js-context"
+         data-csrf-token="{{ csrf_token }}"
+         data-reorder-url="{% url 'index' %}">
+    </div>
+    <script src="{% static 'js/utils.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('checkbox');
+            const isDark = localStorage.getItem('darkMode') === 'true';
+
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                toggle.checked = true;
+            }
+
+            toggle.addEventListener('change', () => {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            });
+        });
+
+        function addTimerField(containerId) {
+            const container = document.getElementById(containerId);
+            const input = document.createElement("input");
+            input.type = "text";
+            input.name = "timer_names";
+            input.className = "form-control mb-2";
+            container.appendChild(input);
+        }
+
+        function deleteLastField(containerId) {
+            const container = document.getElementById(containerId);
+            const inputs = container.querySelectorAll('input[name="timer_names"]');
+            if (inputs.length > 1) {
+                container.removeChild(inputs[inputs.length - 1]);
+            }
+        }
+    </script>
+</body>
+</html>

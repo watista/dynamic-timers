@@ -34,6 +34,7 @@ function updateTimers() {
     const totalMinutesInt = Math.floor((totalSeconds % 3600) / 60);
     document.getElementById("total-hours").textContent = `${totalHoursInt}h${String(totalMinutesInt).padStart(2, '0')}m`;
     checkInactivity(anyTimerRunning);
+    checkActivity(anyTimerRunning);
 }
 
 setInterval(updateTimers, 1000);
@@ -85,6 +86,8 @@ function drop(ev) {
 
 let lastActiveTimestamp = Date.now();
 let lastNotified = 0;
+let activeTimerStarted  = Date.now();
+let lastActivityAlert = 0;
 
 function checkInactivity(anyRunning) {
     const now = Date.now();
@@ -104,10 +107,41 @@ function checkInactivity(anyRunning) {
     }
 }
 
+function checkActivity(anyRunning) {
+    const now = Date.now();
+    const input = document.getElementById("activity-time");
+    const activityDelay = parseInt(input?.value || "60", 10);
+    const delayMinutes = Math.max(activityDelay, 1);
+
+    if (anyRunning) {
+        if (!activeTimerStarted) {
+            activeTimerStarted = now;
+        }
+
+        const runningMinutes = (now - activeTimerStarted) / 1000 / 60;
+
+        if (runningMinutes >= delayMinutes && (now - lastActivityAlert) > 1000 * 60 * delayMinutes) {
+            sendActivityNotification(delayMinutes);
+            lastActivityAlert = now;
+        }
+    } else {
+        activeTimerStarted = null;
+    }
+}
+
 function sendInactivityNotification(delay) {
     if (Notification.permission === "granted") {
         new Notification("⏱ Reminder", {
-            body: `No timers have been running for ${delay} minutes.`,
+            body: `No timers have been running for ${delay} minutes. Get to work!`,
+            icon: "/static/img/favicon.png"
+        });
+    }
+}
+
+function sendActivityNotification(delay) {
+    if (Notification.permission === "granted") {
+        new Notification("⏳ Reminder", {
+            body: `The same timer has been running for more than ${delay} minutes, this is correct?`,
             icon: "/static/img/favicon.png"
         });
     }
@@ -270,15 +304,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const inactivityInput = document.getElementById("inactivity-time");
+    const activityInput = document.getElementById("activity-time");
 
     const savedDelay = localStorage.getItem("inactivityDelay");
+    const savedDelayActive = localStorage.getItem("activityDelay");
     inactivityInput.value = savedDelay ? parseInt(savedDelay, 10) : 15;
+    activityInput.value = savedDelayActive ? parseInt(savedDelayActive, 10) : 60;
 
     inactivityInput.addEventListener("input", () => {
         const value = parseInt(inactivityInput.value, 10);
         if (!isNaN(value) && value >= 1) {
             localStorage.setItem("inactivityDelay", value);
         }
+    });
+
+    activityInput.addEventListener("input", () => {
+        const value = parseInt(activityInput.value, 10);
+        if (!isNaN(value) && value >= 1) {
+            localStorage.setItem("activityDelay", value);
+        }
+    });
+
+    document.getElementById("export-salesforce")?.addEventListener("click", () => {
+        window.open("https://www.youtube.com/watch?v=dQw4w9WgXcQ", "_blank");
     });
 
     updateTimers(); // initial
