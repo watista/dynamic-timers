@@ -147,6 +147,50 @@ function sendActivityNotification(delay) {
     }
 }
 
+let draggedTabIndex = null;
+
+function onTabDragStart(event) {
+    draggedTabIndex = event.currentTarget.dataset.tabIndex;
+    event.dataTransfer.effectAllowed = "move";
+}
+
+function onTabDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+}
+
+function onTabDrop(event) {
+    event.preventDefault();
+    const dropIndex = event.currentTarget.dataset.tabIndex;
+
+    if (draggedTabIndex === null || draggedTabIndex === dropIndex) return;
+
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.style.display = "none";
+
+    const csrf = document.querySelector("input[name=csrfmiddlewaretoken]").cloneNode();
+    form.appendChild(csrf);
+
+    const action = document.createElement("input");
+    action.name = "action";
+    action.value = "reorder_tabs";
+    form.appendChild(action);
+
+    const from = document.createElement("input");
+    from.name = "from_index";
+    from.value = draggedTabIndex;
+    form.appendChild(from);
+
+    const to = document.createElement("input");
+    to.name = "to_index";
+    to.value = dropIndex;
+    form.appendChild(to);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".drag-handle").forEach(handle => {
         handle.setAttribute("draggable", true);
@@ -237,6 +281,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (autoFocusInput) {
         autoFocusInput.focus();
         autoFocusInput.select();
+    }
+
+    const autoFocusTabInput = document.querySelector('input.tab-name-input[data-autofocus="true"]');
+    if (autoFocusTabInput) {
+        const container = autoFocusTabInput.closest(".tab-name-container");
+        const text = container?.querySelector(".tab-name-text");
+        const icon = container?.querySelector(".edit-tab-name");
+
+        if (text && icon) {
+            text.classList.add("d-none");
+            icon.classList.add("d-none");
+            autoFocusTabInput.classList.remove("d-none");
+            autoFocusTabInput.focus();
+            autoFocusTabInput.select();
+        }
     }
 
     // Handle Enter to submit timer name

@@ -39,7 +39,7 @@
 
     <!-- Inactivity alert interval input -->
     <div class="mb-2 d-flex align-items-center fw-semibold gap-2">
-        <label for="inactivity-time">Inactivity notification interval:</label>
+        <label for="inactivity-time" class="activity-label">Inactivity notification interval:</label>
         <div class="d-flex align-items-center gap-2">
             <input type="number" id="inactivity-time" class="form-control" min="1" step="1">
             <span>minutes</span>
@@ -48,7 +48,7 @@
 
     <!-- Activity alert interval input -->
     <div class="mb-2 d-flex align-items-center fw-semibold gap-2">
-        <label for="activity-time">Activity notification interval:</label>
+        <label for="activity-time" class="activity-label">Activity notification interval:</label>
         <div class="d-flex align-items-center gap-2">
             <input type="number" id="activity-time" class="form-control" min="1" step="1">
             <span>minutes</span>
@@ -59,7 +59,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <ul class="nav nav-tabs" id="tab-list">
         {% for tab in tabs %}
-            <li class="nav-item {% if forloop.counter0 == active_tab %}active{% endif %}" data-tab-index="{{ forloop.counter0 }}">
+            <li class="nav-item {% if forloop.counter0 == active_tab %}active{% endif %}" data-tab-index="{{ forloop.counter0 }}" draggable="true" ondragstart="onTabDragStart(event)" ondragover="onTabDragOver(event)" ondrop="onTabDrop(event)">
                 {% if forloop.counter0 == active_tab %}
                     <form method="POST" class="d-flex align-items-center gap-1 tab-rename-form">{% csrf_token %}
                         <input type="hidden" name="action" value="rename_tab">
@@ -67,7 +67,7 @@
 
                         <span class="nav-link active d-flex align-items-center gap-1 tab-name-container" data-tab="{{ forloop.counter0 }}">
                             <span class="tab-name-text" data-tab="{{ forloop.counter0 }}">{{ tab.name }}</span>
-                            <input type="text" name="tab_name" class="form-control form-control-sm tab-name-input d-none" value="{{ tab.name }}" data-tab-index="{{ forloop.counter0 }}">
+                            <input type="text" name="tab_name" class="form-control form-control-sm tab-name-input d-none" value="{{ tab.name }}" data-tab-index="{{ forloop.counter0 }}" {% if tab_is_new and forloop.counter0 == active_tab %}data-autofocus="true"{% endif %}>
                             <span class="edit-tab-name" data-tab-edit-trigger="true" data-tab-index="{{ forloop.counter0 }}" title="Rename tab">✏️</span>
                         </span>
                     </form>
@@ -102,7 +102,7 @@
           <ul class="dropdown-menu">
             {% for set in timer_sets %}
               <li>
-                <form method="POST" class="px-3">{% csrf_token %}
+                <form method="POST" class="px-1">{% csrf_token %}
                   <input type="hidden" name="action" value="apply_timer_set">
                   <input type="hidden" name="set_name" value="{{ set.name }}">
                   <button type="submit" class="dropdown-item">{{ set.name }}</button>
@@ -126,7 +126,7 @@
 
     <!-- Timers -->
     <div class="tab-content" data-tab="{{ active_tab_index }}">
-        <div id="timer-container" class="mb-3 pb-2" ondrop="drop(event)">
+        <div id="timer-container" class="pb-2" ondrop="drop(event)">
             {% for timer in timers %}
                 <div class="card mb-2 p-3 {% if timer.running %}bg-warning-subtle{% endif %}" data-tab="{{ active_tab }}" ondragstart="drag(event)" ondragend="dragEnd(event)" ondragover="allowDrop(event)" ondrop="drop(event)" id="timer-{{ forloop.counter0 }}">
                     <form method="POST" class="d-flex align-items-center justify-content-between gap-2">{% csrf_token %}
@@ -165,9 +165,29 @@
         </div>
     </div>
 
+    <!-- Export/import tabs -->
+    <div class="text-center mb-2">
+       <form method="POST" enctype="multipart/form-data" class="d-inline me-2">
+            {% csrf_token %}
+            <input type="file" name="import_file" accept=".json" required hidden id="import-tab-input" onchange="this.form.submit()">
+            <button type="button" class="btn btn-outline-primary fw-bold" onclick="document.getElementById('import-tab-input').click()">📥 Import Tab</button>
+        </form>
+
+        <form method="POST" class="d-inline me-2">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="export_tab">
+            <button type="submit" class="btn btn-outline-secondary fw-bold">📤 Export Tab</button>
+        </form>
+
+        <form method="POST" id="share-form" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" formaction="{% url 'share_state' %}" class="btn btn-outline-info fw-bold">🔗 Share Timers</button>
+        </form>
+    </div>
+
     <!-- Export salesforce -->
     <div class="text-center my-4">
-      <button id="export-salesforce" class="btn btn-outline-primary fw-semibold">
+      <button id="export-salesforce" class="btn btn-outline-primary fw-bold">
         🚀 Export time to Salesforce
       </button>
     </div>
@@ -201,6 +221,19 @@
                 document.body.classList.toggle('dark-mode');
                 localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
             });
+        });
+
+        document.getElementById("share-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const csrf = document.querySelector("input[name=csrfmiddlewaretoken]").value;
+            const res = await fetch("{% url 'share_state' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrf
+                }
+            });
+            const data = await res.json();
+            prompt("📋 Share this link:", data.url);
         });
     </script>
 </body>

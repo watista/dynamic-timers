@@ -2,7 +2,13 @@ from django.shortcuts import render, redirect
 from django.utils.timezone import now
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import time, json
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import time, json, base64, uuid
+
+
+SHARE_DIR = "shared_states"
+
 
 def index(request):
     if "tabs" not in request.session:
@@ -46,6 +52,8 @@ def index(request):
         if action == "add_tab":
             tabs.append({"name": f"Tab {len(tabs) + 1}", "timers": []})
             request.session["active_tab"] = len(tabs) - 1
+            request.session["tab_is_new"] = True
+            request.session.modified = True
             save()
             return redirect("index")
 
@@ -86,6 +94,33 @@ def index(request):
                     "locked": False
                 } for t in selected_set["timers"])
                 save()
+
+        elif action == "export_tab":
+            current_tab = request.session["tabs"][request.session["active_tab"]]
+            response = JsonResponse(current_tab)
+            response["Content-Disposition"] = f'attachment; filename="{current_tab["name"]}.json"'
+            return response
+
+        elif "import_file" in request.FILES:
+            file = request.FILES["import_file"]
+            try:
+                data = json.load(file)
+                if isinstance(data, dict) and "name" in data and "timers" in data:
+                    request.session["tabs"].append(data)
+                    request.session["active_tab"] = len(request.session["tabs"]) - 1
+                    request.session.modified = True
+            except Exception as e:
+                print("Import failed:", e)
+            return redirect("index")
+
+        elif action == "reorder_tabs":
+            from_index = int(request.POST.get("from_index", -1))
+            to_index = int(request.POST.get("to_index", -1))
+
+            if 0 <= from_index < len(tabs) and 0 <= to_index < len(tabs):
+                tab = tabs.pop(from_index)
+                tabs.insert(to_index, tab)
+                request.session.modified = True
 
         elif 0 <= timer_id < len(timers):
             timer = timers[timer_id]
@@ -157,6 +192,7 @@ def index(request):
     total_hours_formatted = f"{hours}h{minutes:02d}m"
     current_tab_name = request.session["tabs"][request.session["active_tab"]]["name"]
     new_timer_added = request.session.pop("new_timer_added", False)
+    tab_is_new = request.session.pop("tab_is_new", False)
 
     return render(request, "index.html", {
         "timers": timers,
@@ -167,6 +203,7 @@ def index(request):
         "total_hours_formatted": total_hours_formatted,
         "current_tab_name": current_tab_name,
         "new_timer_added": new_timer_added,
+        "tab_is_new": tab_is_new,
         "timer_sets": request.session["timer_sets"],
     })
 
@@ -205,3 +242,31 @@ def manage_timer_sets(request):
         return redirect("manage_timer_sets")
 
     return render(request, "manage_timer_sets.html", {"timer_sets": sets})
+
+
+def share_state(request):
+    state = {
+        "tabs": request.session.get("tabs", []),
+        "timer_sets": request.session.get("timer_sets", []),
+    }
+    token = str(uuid.uuid4())
+    data = json.dumps(state)
+    path = f"{SHARE_DIR}/{token}.json"
+    default_storage.save(path, ContentFile(data))
+    share_url = request.build_absolute_uri(f"/load/{token}/")
+    return JsonResponse({"url": share_url})
+
+
+def load_shared_state(request, token):
+    path = f"{SHARE_DIR}/{token}.json"
+    if default_storage.exists(path):
+        content = default_storage.open(path).read()
+        try:
+            state = json.loads(content)
+            request.session["tabs"] = state.get("tabs", [])
+            request.session["timer_sets"] = state.get("timer_sets", [])
+            request.session["active_tab"] = 0
+            request.session.modified = True
+        except Exception as e:
+            print("Load error:", e)
+    return redirect("index")

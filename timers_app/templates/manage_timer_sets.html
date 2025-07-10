@@ -78,8 +78,13 @@
         </div>
         <button type="button" class="btn btn-sm btn-outline-secondary mb-2 fw-bold" onclick="addTimerField('new-timer-fields')">➕ Add Timer</button><br>
         <button type="submit" class="btn btn-primary btn-sm fw-bold">💾 Save New Set</button>
-        <a href="{% url 'index' %}" class="btn btn-outline-success btn-sm ms-2 fw-bold">← Back</a>
+
     </form>
+
+    <!-- Return -->
+    <div class="text-center my-4">
+      <a href="{% url 'index' %}" class="btn btn-outline-success btn-sm ms-2 fw-bold">← Back</a>
+    </div>
 
     <!-- Footer -->
     <footer class="fixed-bottom text-center py-2 bg-light border-top shadow-sm">

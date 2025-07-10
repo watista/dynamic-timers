@@ -56,3 +56,6 @@ input[type=number]::-webkit-outer-spin-button {
 .dropdown-item {
     border-radius: 5px;
 }
+.activity-label {
+    min-width: 217px;
+}
