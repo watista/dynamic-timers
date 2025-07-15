@@ -4,9 +4,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
-import time, json, base64, uuid
+import time, json, base64, uuid, logging
 
 
+logger = logging.getLogger('timers_app')
 SHARE_DIR = "shared_states"
 
 
@@ -110,7 +111,7 @@ def index(request):
                     request.session["active_tab"] = len(request.session["tabs"]) - 1
                     request.session.modified = True
             except Exception as e:
-                print("Import failed:", e)
+                logger.warning(f"Import failed: {e}")
             return redirect("index")
 
         elif action == "reorder_tabs":
@@ -133,7 +134,8 @@ def index(request):
                     if elapsed:
                         try:
                             timer["elapsed"] = max(0, float(elapsed) * 60)
-                        except ValueError:
+                        except ValueError as ve:
+                            logger.warning(f"Value error action toggle: {ve}")
                             pass
 
                 for i, t in enumerate(timers):
@@ -159,7 +161,8 @@ def index(request):
                 if elapsed is not None and not timer["running"]:
                     try:
                         timer["elapsed"] = max(0, float(elapsed) * 60)
-                    except ValueError:
+                    except ValueError as ve:
+                        logger.warning(f"Value error action update: {ve}")
                         pass
                 save()
 
@@ -268,5 +271,5 @@ def load_shared_state(request, token):
             request.session["active_tab"] = 0
             request.session.modified = True
         except Exception as e:
-            print("Load error:", e)
+            logger.exception(f"Load error: {e}")
     return redirect("index")

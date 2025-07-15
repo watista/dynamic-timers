@@ -7,8 +7,9 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
-DEBUG = config('DEBUG')
+DEBUG = config("DEBUG", default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', cast=Csv())
 
 INSTALLED_APPS = [
     # 'django.contrib.admin',
@@ -21,6 +22,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'timers_app.middleware.AccessLogMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -75,6 +77,22 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 365
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
+if DEBUG:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+ACCESS_LOGGING = {
+    "ENABLED": True,
+    "FORMAT": "combined",
+    "LOGGER_NAME": "django.request",
+}
+
 LOG_LEVEL = config('LOG_LEVEL', default='INFO')
 LOG_FILENAME = f'dynamic-timers-{time.strftime("%m-%d-%Y")}.log'
 
@@ -128,7 +146,7 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(log_dir, LOG_FILENAME),
             'maxBytes': 10485760,
-            'backupCount': 31,
+            'backupCount': 90,
         },
     },
     'loggers': {
@@ -136,6 +154,16 @@ LOGGING = {
             'handlers': active_handlers,
             'level': LOG_LEVEL,
             'propagate': True,
+        },
+        'timers_app': {
+            'handlers': active_handlers,
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'access': {
+            'handlers': active_handlers,
+            'level': 'INFO',
+            'propagate': False,
         },
     },
 }

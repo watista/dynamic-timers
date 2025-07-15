@@ -7,10 +7,10 @@ User=www-data
 Group=www-data
 WorkingDirectory=/var/www/dynamic-timers
 Environment="DJANGO_SETTINGS_MODULE=timers_project.settings"
-ExecStart=/var/www/dynamic-timers/env/bin/uvicorn \
-    timers_project.asgi:application \
-    --uds /var/www/dynamic-timers/uvicorn.sock \
-    --workers 4
+ExecStart=/var/www/dynamic-timers/env/bin/uvicorn timers_project.asgi:application --host 0.0.0.0 --port 9000 --workers 4
+KillMode=process
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
+Alias=dynamic-timers.service
