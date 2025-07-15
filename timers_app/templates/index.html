@@ -90,12 +90,12 @@
     </div>
 
     <!-- Add Timer -->
-    <div class="d-flex gap-2 mb-3">
-        <form method="POST">{% csrf_token %}
+    <div class="d-flex gap-2 mb-3 function-row">
+        <form class="f-item one" method="POST">{% csrf_token %}
             <button name="action" value="add" class="btn btn-primary fw-bold">➕ Add Timer</button>
         </form>
         {% if timer_sets %}
-        <div class="btn-group">
+        <div class="btn-group f-item two">
           <button type="button" class="btn btn-outline-secondary dropdown-toggle fw-bold" data-bs-toggle="dropdown" aria-expanded="false">
             📋 Apply Timer Set
           </button>
@@ -112,11 +112,11 @@
           </ul>
         </div>
         {% endif %}
-        <a href="{% url 'manage_timer_sets' %}" class="btn btn-outline-success fw-bold">
+        <a href="{% url 'manage_timer_sets' %}" class="f-item three btn btn-outline-success fw-bold">
           🛠 Manage Timer Sets
         </a>
         {% if tabs|length > 1 %}
-        <form method="POST" onsubmit="return confirm('Are you sure you want to delete the tab: {{ current_tab_name }}?')">
+        <form method="POST" class="f-item four" onsubmit="return confirm('Are you sure you want to delete the tab: {{ current_tab_name }}?')">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_tab">
             <button type="submit" class="btn btn-danger fw-bold">🗑️ Delete Current Tab</button>
@@ -166,7 +166,7 @@
     </div>
 
     <!-- Export/import tabs -->
-    <div class="text-center mb-2">
+    <div class="text-center mb-2 export">
        <form method="POST" enctype="multipart/form-data" class="d-inline me-2">
             {% csrf_token %}
             <input type="file" name="import_file" accept=".json" required hidden id="import-tab-input" onchange="this.form.submit()">

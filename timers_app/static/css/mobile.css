@@ -2,6 +2,27 @@
     .name-input {
         width: 16rem;
     }
+    .function-row {
+        flex-wrap: wrap;
+    }
+    .function-row .f-item {
+        flex: 1 1 49%;
+    }
+    .function-row .f-item.one {
+        order: 1;
+    }
+    .function-row .f-item.two {
+        order: 3;
+    }
+    .function-row .f-item.three {
+        order: 4;
+    }
+    .function-row .f-item.four {
+        order: 2;
+    }
+    .function-row .btn {
+        width: 100%;
+    }
 }
 
 @media (max-width: 768px) {
