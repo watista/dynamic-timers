@@ -175,6 +175,12 @@ def index(request):
                     timer["running"] = False
                 save()
 
+            elif action == "reset":
+                timers[timer_id]["elapsed"] = 0.0
+                timers[timer_id]["start_time"] = None
+                timers[timer_id]["running"] = False
+                save()
+
             elif action == "delete":
                 timers.pop(timer_id)
                 save()

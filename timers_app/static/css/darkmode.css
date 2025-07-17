@@ -33,6 +33,10 @@ body.dark-mode .btn-danger {
     background-color: #dc3545;
 }
 
+body.dark-mode .btn-info {
+    background-color: #0dcaf0;
+}
+
 body.dark-mode .btn-warning {
     background-color: #ffc107;
     color: #000;

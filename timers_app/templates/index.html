@@ -22,6 +22,14 @@
             document.documentElement.classList.add("dark-mode");
         }
     </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-HFQFMJDLL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('js', new Date());
+
+      gtag('config', 'G-HFQFMJDLL2');
+    </script>
 </head>
 <body class="container py-4">
     <div class="mb-2 d-flex align-items-center justify-content-between gap-2">
@@ -153,7 +161,10 @@
                                 <button type="submit" name="action" value="toggle" class="btn btn-success me-2 play" {% if timer.locked %}disabled{% endif %}>▶️ Start</button>
                             {% endif %}
                         </div>
-                        <button type="submit" name="action" value="delete" class="btn btn-danger desktop" {% if timer.locked %}disabled{% endif %}>🗑️</button>
+                        <div>
+                            <button type="submit" name="action" value="reset" class="btn btn-info me-2" {% if timer.locked %}disabled{% endif %}>🔄</button>
+                            <button type="submit" name="action" value="delete" class="btn btn-danger" {% if timer.locked %}disabled{% endif %}>🗑️</button>
+                        </div>
                         <input type="hidden" name="timer_id" value="{{ forloop.counter0 }}">
                     </form>
                 </div>
