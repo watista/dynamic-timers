@@ -144,7 +144,7 @@
                                 {% if timer.locked %}🔒{% else %}🔓{% endif %}
                             </button>
                             <button type="submit" name="action" value="delete" class="btn btn-danger mobile" {% if timer.locked %}disabled{% endif %}>🗑️</button>
-                            <textarea name="name" data-id="{{ forloop.counter0 }}" class="form-control me-2 name-input" rows="1" data-tab="{{ active_tab }}" {% if timer.locked %}disabled{% endif %} {% if new_timer_added and forloop.last %}data-autofocus="true"{% endif %}>{{ timer.name }}</textarea>
+                            <textarea name="name" data-id="{{ forloop.counter0 }}" data-storage-id="{{ timer.id }}" data-tab="{{ active_tab }}" data-tab-id="{{ tab.id }}" class="form-control me-2 name-input" rows="1" data-tab="{{ active_tab }}" {% if timer.locked %}disabled{% endif %} {% if new_timer_added and forloop.last %}data-autofocus="true"{% endif %}>{{ timer.name }}</textarea>
 
                             {% if timer.running %}
                                 <span class="me-2 running-timer" data-timer data-start="{{ timer.start_time }}" data-elapsed="{{ timer.elapsed }}" data-tab="{{ active_tab }}">

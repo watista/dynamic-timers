@@ -11,6 +11,7 @@ Create a `.env` file in the project root and add the following variables.
 |DEBUG|Django env setting|
 |SECRET_KEY|The secret key for Django to use for signing, hashing and signing|
 |ALLOWED_HOSTS|The host names that are allowed for the app|
+|CSRF_TRUSTED_ORIGINS|Trusted hosts, seperated by a comma, in FQDN format with protocol|
 |LOG_LEVEL|The log level, allowed values are: DEBUG, INFO, WARNING, ERROR, or CRITICAL|
 
 

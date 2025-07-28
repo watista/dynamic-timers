@@ -1,4 +1,5 @@
 @media (max-width: 992px) {
+    .name-input-sets,
     .name-input {
         width: 16rem;
     }
@@ -31,6 +32,7 @@
         display: none;
     }
 
+    .name-input-sets,
     .name-input {
         width: 100% !important;
         margin: 0 !important;

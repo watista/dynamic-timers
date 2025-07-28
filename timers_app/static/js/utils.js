@@ -343,18 +343,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".name-input").forEach(field => {
-        const id = field.dataset.id;
-        const savedWidth = localStorage.getItem(`name-width-${id}`);
+        const storageId = field.dataset.storageId;
+        const tab = field.dataset.tabId;
+        const savedWidth = localStorage.getItem(`name-width-${tab}-${storageId}`);
         if (savedWidth) {
             field.style.width = savedWidth;
         }
 
         field.addEventListener("mouseup", () => {
-            localStorage.setItem(`name-width-${id}`, field.style.width);
+            localStorage.setItem(`name-width-${tab}-${storageId}`, field.style.width);
         });
 
         field.addEventListener("blur", () => {
-            localStorage.setItem(`name-width-${id}`, field.style.width);
+            localStorage.setItem(`name-width-${tab}-${storageId}`, field.style.width);
+        });
+    });
+
+    document.querySelectorAll("button[name='action'][value='delete']").forEach(button => {
+        button.addEventListener("click", (e) => {
+            const form = button.closest("form");
+            const storageId = form.querySelector(".name-input")?.dataset.storageId;
+            const tab = form.querySelector(".name-input")?.dataset.tabId;
+            if (storageId && tab) {
+                localStorage.removeItem(`name-width-${tab}-${storageId}`);
+            }
         });
     });
 

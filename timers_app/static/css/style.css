@@ -2,6 +2,7 @@ body.container {
     padding-bottom: 80px !important;
 }
 
+.name-input-sets,
 .name-input {
     width: 20rem;
     resize: horizontal;

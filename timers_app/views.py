@@ -51,7 +51,7 @@ def index(request):
             request.session.modified = True
 
         if action == "add_tab":
-            tabs.append({"name": f"Tab {len(tabs) + 1}", "timers": []})
+            tabs.append({"id": str(uuid.uuid4()), "name": f"Tab {len(tabs) + 1}", "timers": []})
             request.session["active_tab"] = len(tabs) - 1
             request.session["tab_is_new"] = True
             request.session.modified = True
@@ -71,6 +71,7 @@ def index(request):
 
         elif action == "add":
             timers.append({
+                "id": str(uuid.uuid4()),
                 "name": "New Timer",
                 "elapsed": 0.0,
                 "running": False,
@@ -82,19 +83,33 @@ def index(request):
 
         elif action == "apply_timer_set":
             set_name = request.POST.get("set_name")
-            current_tab = request.session["active_tab"]
             sets = request.session["timer_sets"]
 
             selected_set = next((s for s in sets if s["name"] == set_name), None)
             if selected_set:
                 timers.extend({
                     "name": t["name"],
-                    "elapsed": 0.0,
+                    "elapsed": t.get("elapsed", 0) * 60,
                     "running": False,
                     "start_time": None,
                     "locked": False
                 } for t in selected_set["timers"])
                 save()
+
+            # for s in timer_sets:
+            #     if s["name"] == set_name:
+            #         tabs[active_tab]["timers"].extend([
+            #             {
+            #                 "name": t["name"],
+            #                 "elapsed": t.get("elapsed", 0),
+            #                 "running": False,
+            #                 "start_time": None,
+            #                 "locked": False,
+            #             }
+            #             for t in s["timers"]
+            #         ])
+            #         request.session.modified = True
+            #         break
 
         elif action == "export_tab":
             current_tab = request.session["tabs"][request.session["active_tab"]]
@@ -194,6 +209,14 @@ def index(request):
         else:
             t["elapsed_display"] = t["elapsed"] / 60
 
+    for t in timers:
+        if "id" not in t:
+            t["id"] = str(uuid.uuid4())
+
+    for tab in tabs:
+        if "id" not in tab:
+            tab["id"] = str(uuid.uuid4())
+
     total_seconds = sum(t.get("elapsed", 0) + (time.time() - t["start_time"] if t["running"] else 0) for t in timers)
     total_minutes = round(total_seconds / 60, 1)
     hours = int(total_minutes // 60)
@@ -227,25 +250,50 @@ def manage_timer_sets(request):
         action = request.POST.get("action")
         if action == "add":
             name = request.POST.get("set_name", "").strip()
-            timers = request.POST.getlist("timer_names")
-            timers = [{"name": t.strip()} for t in timers if t.strip()]
+            timer_names = request.POST.getlist("timer_names")
+            timer_minutes = request.POST.getlist("timer_minutes")
+
+            timers = []
+            for t_name, t_min in zip(timer_names, timer_minutes):
+                t_name = t_name.strip()
+                try:
+                    elapsed = max(0, float(t_min))
+                except ValueError:
+                    elapsed = 0
+                if t_name:
+                    timers.append({"name": t_name, "elapsed": elapsed})
+
             if name and timers:
-                sets.append({"name": name, "timers": timers})
+                sets.append({
+                    "name": name,
+                    "timers": timers
+                })
+                request.session["timer_sets"] = sets
                 request.session.modified = True
+            return redirect("manage_timer_sets")
 
         elif action == "update":
-            index = int(request.POST.get("set_index"))
-            name = request.POST.get("set_name", "").strip()
-            timers = request.POST.getlist("timer_names")
-            timers = [{"name": t.strip()} for t in timers if t.strip()]
-            if 0 <= index < len(sets) and name:
-                sets[index] = {"name": name, "timers": timers}
+            set_index = int(request.POST.get("set_index", -1))
+            if 0 <= set_index < len(sets):
+                set_name = request.POST.get("set_name", "").strip()
+                timer_names = request.POST.getlist("timer_names")
+                elapsed_times = request.POST.getlist("timer_minutes")
+                timers = []
+                for name, minutes in zip(timer_names, elapsed_times):
+                    try:
+                        elapsed = max(0, float(minutes))
+                    except ValueError:
+                        elapsed = 0.0
+                    timers.append({"name": name.strip(), "elapsed": elapsed})
+                sets[set_index]["name"] = set_name
+                sets[set_index]["timers"] = timers
                 request.session.modified = True
+            return redirect("manage_timer_sets")
 
         elif action == "delete":
-            index = int(request.POST.get("set_index"))
-            if 0 <= index < len(sets):
-                del sets[index]
+            set_index = int(request.POST.get("set_index", -1))
+            if 0 <= set_index < len(sets):
+                del sets[set_index]
                 request.session.modified = True
 
         return redirect("manage_timer_sets")

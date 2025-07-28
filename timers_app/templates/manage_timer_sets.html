@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% load static %}
+{% load format_tags %}
 <html lang="en">
 <head>
     <title>Dynamic Timers</title>
@@ -29,7 +30,8 @@
       gtag('config', 'G-HFQFMJDLL2');
     </script>
 </head>
-<body class="container py-4">
+<body class="container py-4" style="display: flex; justify-content: center;">
+<div style="width: 540px">
     <div class="mb-2 d-flex align-items-center justify-content-between gap-2">
         <h1>Manage Timer Sets</h1>
         <div class="form-switch float-end">
@@ -47,24 +49,26 @@
     {% for set in timer_sets %}
     <form method="POST" class="border p-3 mb-3 rounded">{% csrf_token %}
         <input type="hidden" name="action" value="update">
+        <button type="button" class="btn btn-primary btn-sm mb-2 fw-bold" onclick="addTimerField('timers-{{ forloop.counter0 }}')">➕ Add Timer</button>
         <input type="hidden" name="set_index" value="{{ forloop.counter0 }}">
         <div class="mb-2">
             <label class="form-label fw-bold">Set Name</label>
-            <input type="text" name="set_name" class="form-control" value="{{ set.name }}" required>
+            <input type="text" name="set_name" class="name-input-sets form-control" value="{{ set.name }}" required>
         </div>
         <div id="timers-{{ forloop.counter0 }}">
             <label class="form-label fw-bold">Timer Name(s)</label>
             {% for timer in set.timers %}
-                <input type="text" name="timer_names" class="form-control mb-2" value="{{ timer.name }}" required>
+            <div class="d-flex gap-2 mb-2">
+                <input type="text" name="timer_names" class="name-input-sets form-control" value="{{ timer.name }}" required>
+                <input type="number" data-id="{{ forloop.counter0 }}" name="timer_minutes" class="form-control elapsed-input" step="0.1" min="0" value="{% if timer.elapsed %}{{ timer.elapsed|format_minutes }}{% else %}0.0{% endif %}" data-tab="{{ active_tab }}">
+                <span data-timer data-id="{{ forloop.counter0 }}" data-elapsed="{{ timer.elapsed }}" data-tab="{{ active_tab }}" style="display: none;"></span>
+                <button type="submit" name="action" value="delete" class="btn btn-danger">🗑️</button>
+            </div>
             {% endfor %}
         </div>
-        <div class="d-flex gap-2 mb-3">
-            <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="addTimerField('timers-{{ forloop.counter0 }}')">➕ Add Timer</button>
-            <button type="button" class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteLastField('timers-{{ forloop.counter0 }}')">🗑 Delete Last</button>
-        </div>
-        <div class="mt-2">
+        <div class="mt-3">
             <button type="submit" name="action" value="update" class="btn btn-success btn-sm fw-bold">💾 Save</button>
-            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm ms-2 fw-bold">🗑 Delete</button>
+            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm ms-2 fw-bold">🗑 Delete set</button>
         </div>
     </form>
     {% empty %}
@@ -76,17 +80,23 @@
     <h4 class="mt-4">➕ Add New Timer Set</h4>
     <form method="POST" class="border p-3 rounded">{% csrf_token %}
         <input type="hidden" name="action" value="add">
+        <button type="submit" class="mb-3 btn btn-success fw-bold">💾 Save New Set</button>
         <div class="mb-2">
             <label class="form-label fw-bold">Set Name</label>
-            <input type="text" name="set_name" class="form-control" required>
+            <input type="text" name="set_name" class="name-input-sets form-control" required>
         </div>
         <div id="new-timer-fields">
             <label class="form-label fw-bold">Timer Name(s)</label>
-            <input type="text" name="timer_names" class="form-control mb-2" required>
+            <div class="d-flex gap-2 mb-2">
+                <input type="text" name="timer_names" class="name-input-sets form-control" value="{{ timer.name }}" required>
+                <input type="number" data-id="{{ forloop.counter0 }}" name="timer_minutes" class="form-control elapsed-input" step="0.1" min="0" value="{% if timer.elapsed %}{{ timer.elapsed|format_minutes }}{% else %}0.0{% endif %}" data-tab="{{ active_tab }}">
+                <span data-timer data-id="{{ forloop.counter0 }}" data-elapsed="{{ timer.elapsed }}" data-tab="{{ active_tab }}" style="display: none;"></span>
+                <button type="submit" name="action" value="delete" class="btn btn-danger">🗑️</button>
+            </div>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-secondary mb-2 fw-bold" onclick="addTimerField('new-timer-fields')">➕ Add Timer</button><br>
-        <button type="submit" class="btn btn-primary btn-sm fw-bold">💾 Save New Set</button>
-
+        <div class="mt-3">
+            <button type="button" class="btn btn-sm btn-primary fw-bold" onclick="addTimerField('new-timer-fields')">➕ Add Timer</button>
+        </div>
     </form>
 
     <!-- Return -->
@@ -123,15 +133,54 @@
                 document.body.classList.toggle('dark-mode');
                 localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
             });
+
+            const autoFocusInput = document.querySelector('input[data-autofocus="true"]');
+            if (autoFocusInput) {
+                autoFocusInput.focus();
+                autoFocusInput.select();
+            }
         });
 
         function addTimerField(containerId) {
             const container = document.getElementById(containerId);
-            const input = document.createElement("input");
-            input.type = "text";
-            input.name = "timer_names";
-            input.className = "form-control mb-2";
-            container.appendChild(input);
+
+            document.querySelectorAll("input[data-autofocus]").forEach(el => el.removeAttribute("data-autofocus"));
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "d-flex gap-2 mb-2";
+
+            const nameInput = document.createElement("input");
+            nameInput.type = "text";
+            nameInput.name = "timer_names";
+            nameInput.className = "name-input-sets form-control";
+            nameInput.required = true;
+            nameInput.setAttribute("data-autofocus", "true");
+
+            const minutesInput = document.createElement("input");
+            minutesInput.type = "number";
+            minutesInput.name = "timer_minutes";
+            minutesInput.className = "form-control elapsed-input";
+            minutesInput.min = 0;
+            minutesInput.step = "0.1";
+            minutesInput.value = "0.0";
+
+            const deleteBotton = document.createElement("button");
+            deleteBotton.type = "submit";
+            deleteBotton.name = "action";
+            deleteBotton.className = "btn btn-danger";
+            deleteBotton.value = "delete";
+            deleteBotton.innerHTML = "🗑️";
+
+            wrapper.appendChild(nameInput);
+            wrapper.appendChild(minutesInput);
+            wrapper.appendChild(deleteBotton);
+
+            container.appendChild(wrapper);
+            setTimeout(() => {
+                nameInput.focus();
+                nameInput.select();
+            }, 0);
+
         }
 
         function deleteLastField(containerId) {
@@ -141,6 +190,8 @@
                 container.removeChild(inputs[inputs.length - 1]);
             }
         }
+
     </script>
+</div>
 </body>
 </html>
