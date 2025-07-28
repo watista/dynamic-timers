@@ -276,7 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-
     const autoFocusInput = document.querySelector('textarea[data-autofocus="true"]');
     if (autoFocusInput) {
         autoFocusInput.focus();

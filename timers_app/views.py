@@ -273,7 +273,10 @@ def manage_timer_sets(request):
             return redirect("manage_timer_sets")
 
         elif action == "update":
-            set_index = int(request.POST.get("set_index", -1))
+            try:
+                set_index = int(request.POST.get("set_index", -1))
+            except ValueError:
+                return redirect("manage_timer_sets")
             if 0 <= set_index < len(sets):
                 set_name = request.POST.get("set_name", "").strip()
                 timer_names = request.POST.getlist("timer_names")
@@ -289,6 +292,15 @@ def manage_timer_sets(request):
                 sets[set_index]["timers"] = timers
                 request.session.modified = True
             return redirect("manage_timer_sets")
+
+        elif action == "delete_timer_row":
+            set_index = int(request.POST.get("set_index", -1))
+            row_index = int(request.POST.get("timer_row_index", -1))
+            if 0 <= set_index < len(sets):
+                timers = sets[set_index]["timers"]
+                if 0 <= row_index < len(timers):
+                    del timers[row_index]
+                    request.session.modified = True
 
         elif action == "delete":
             set_index = int(request.POST.get("set_index", -1))
