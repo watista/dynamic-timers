@@ -95,6 +95,9 @@ ACCESS_LOGGING = {
     "LOGGER_NAME": "django.request",
 }
 
+log_dir = BASE_DIR / "logs"
+log_dir.mkdir(exist_ok=True)
+
 LOG_LEVEL = config('LOG_LEVEL', default='INFO')
 LOG_FILENAME = os.path.join(log_dir, "dynamic-timers.log")
 
@@ -103,9 +106,6 @@ if LOG_LEVEL == 'DEBUG':
     active_handlers.append('debug_file')
 else:
     active_handlers.append('info_rotating_file')
-
-log_dir = BASE_DIR / "logs"
-log_dir.mkdir(exist_ok=True)
 
 LOGGING = {
     'version': 1,
