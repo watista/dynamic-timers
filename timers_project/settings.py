@@ -96,7 +96,7 @@ ACCESS_LOGGING = {
 }
 
 LOG_LEVEL = config('LOG_LEVEL', default='INFO')
-LOG_FILENAME = f'dynamic-timers-{time.strftime("%m-%d-%Y")}.log'
+LOG_FILENAME = os.path.join(log_dir, "dynamic-timers.log")
 
 active_handlers = ['console']
 if LOG_LEVEL == 'DEBUG':
@@ -139,14 +139,14 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'extended',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(log_dir, ('debug-' + LOG_FILENAME)),
+            'filename': os.path.join(log_dir, 'debug-dynamic-timers.log'),
             'mode': 'a',
         },
         'info_rotating_file': {
             'level': 'INFO',
             'formatter': 'default',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(log_dir, LOG_FILENAME),
+            'filename': LOG_FILENAME,
             'when': 'midnight',
             'interval': 1,
             'backupCount': 90,
