@@ -1,5 +1,7 @@
 from pathlib import Path
 from decouple import config, Csv
+from logging.handlers import TimedRotatingFileHandler
+import logging
 import colorlog
 import time
 import os
@@ -143,10 +145,13 @@ LOGGING = {
         'info_rotating_file': {
             'level': 'INFO',
             'formatter': 'default',
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
             'filename': os.path.join(log_dir, LOG_FILENAME),
-            'maxBytes': 10485760,
+            'when': 'midnight',
+            'interval': 1,
             'backupCount': 90,
+            'utc': False,
+            'encoding': 'utf-8',
         },
     },
     'loggers': {
